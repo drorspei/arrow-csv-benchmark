@@ -15,7 +15,7 @@ The Dockerfile sets up a minimal container for running the benchmark.
 
 # My Results
 
-Running this on Azure, machine size `Standard E48s_v3 (48 vcpus, 384 GiB memory)`, unused other than this benchmark, consistently shows speeds of less than 1GiB/s, and often below 0.5GiB/s.
+Running this on Azure, machine size `Standard E48s_v3 (48 vcpus, 384 GiB memory)`, on Linux (ubuntu 18.04), unused other than this benchmark, consistently shows speeds of less than 1GiB/s, and often below 0.5GiB/s.
 
 Included in the repo are profiling dumps, made manually with py-spy. I started them 5 seconds after the beginning of each `read_csv`, and stopped them after about 15 seconds. This was always more than 5 seconds before the `read_csv` finished.
 
