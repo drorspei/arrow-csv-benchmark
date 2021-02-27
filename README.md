@@ -1,22 +1,31 @@
 # arrow-csv-benchmark
-Short benchmark for arrow's read_csv
+EC2 block-size benchmark for arrow's read_csv
 
-# Why
+# Experiment details
 
-I made this repo after experiencing low read speeds (0.5GiB/s) on real work csvs.
+This repo consists of a script that:
 
-# What this does
+1. spins up an EC2 instance,
+2. downloads the NY Yellow Taxi Trip dataset from January 2020,
+3. reads it many times with pyarrow with different block sizes,
+4. saves the results somewhere.
 
-1. Generates a big csv with many string, float, and null columns, using joblib for parallelization,
-2. Puts the csv into a `BytesIO` object,
-3. Calls `pyarrow.csv.read_csv` a few times on the csv bytes.
+There's a short, basic analysis of the results in a notebook.
 
-The Dockerfile sets up a minimal container for running the benchmark.
+The data is not here yet, I'm still running the script a bit. I will upload the collected data later this weekend.
 
-# My Results
+# How to run the script
 
-Running this on Azure, machine size `Standard E48s_v3 (48 vcpus, 384 GiB memory)`, on Linux (ubuntu 18.04), unused other than this benchmark, consistently shows speeds of less than 1GiB/s, and often below 0.5GiB/s.
+The `run_benchmark.py` script takes a few required arguments in order to spin up EC2 instances. These include key-file pair, arn profile, etc.
 
-Included in the repo are profiling dumps, made manually with py-spy. I started them 5 seconds after the beginning of each `read_csv`, and stopped them after about 15 seconds. This was always more than 5 seconds before the `read_csv` finished.
+The script aggressively makes sure that instances will shutdown after an alloted number of minutes, by:
 
-If the profiles are to be trusted, there is considerable time spent in the shared pointer's lock mechanisms. As for the reading of the bytes, I'm not sure what goes into this or why it takes time.
+1. Setting the startup script (UserData in EC2 parlance) to schedule a shutdown,
+2. Using a context manager that uses boto to terminate instance when exiting,
+3. Run the command shutdown when the single ssh command is done,
+4. The ssh command being run, also itself, starts with a scheduled shutdown
+5. The ssh command being run ends with a call to shutdown immediately.
+
+The instances must shut down, since otherwise we pay!
+
+Inevitably, of course, sometimes instances don't shut down, and I manually do it in the AWS console.
